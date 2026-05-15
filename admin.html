@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家族樹 · 資料更新後台</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@200;300;400;500&family=Noto+Sans+TC:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f0f0;
+  --surface: #fafafa;
+  --border: #d8d8d8;
+  --text: #1e1e1e;
+  --text-dim: #666;
+  --text-dimmer: #999;
+  --yellow: #f5d800;
+  --yellow-dk: #c8b000;
+  --green: #22c55e;
+  --red: #ef4444;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding:40px 24px 80px; }
+
+.container { max-width:720px; margin:0 auto; }
+
+/* Header */
+.page-title { font-weight:200; font-size:1.6rem; letter-spacing:0.3em; color:var(--text); margin-bottom:4px; }
+.page-sub { font-weight:200; font-size:0.72rem; letter-spacing:0.18em; color:var(--text-dimmer); margin-bottom:40px; text-transform:uppercase; }
+
+/* Step cards */
+.step { background:var(--surface); border:1px solid var(--border); padding:24px 28px; margin-bottom:16px; }
+.step-num { font-family:'DM Sans',sans-serif; font-weight:500; font-size:0.65rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--yellow-dk); margin-bottom:8px; }
+.step-title { font-weight:400; font-size:1rem; letter-spacing:0.1em; color:var(--text); margin-bottom:8px; }
+.step-desc { font-weight:200; font-size:0.82rem; letter-spacing:0.06em; color:var(--text-dim); line-height:1.9; margin-bottom:16px; }
+.step-desc b { font-weight:500; color:var(--text); }
+.step-desc code { font-family:monospace; background:#eee; padding:1px 6px; font-size:0.78rem; border-radius:2px; }
+
+/* Textarea */
+textarea {
+  width:100%; min-height:200px; padding:14px 16px;
+  border:1px solid var(--border); background:white;
+  font-family:'Noto Sans TC',monospace; font-size:0.82rem;
+  color:var(--text); outline:none; resize:vertical; line-height:1.7;
+  transition:border-color 0.2s;
+}
+textarea:focus { border-color:var(--yellow-dk); }
+textarea::placeholder { color:var(--text-dimmer); }
+
+/* Buttons */
+.btn {
+  padding:12px 24px; border:1px solid var(--border); background:white;
+  font-family:'DM Sans','Noto Sans TC',sans-serif; font-weight:400;
+  font-size:0.88rem; letter-spacing:0.1em; cursor:pointer; transition:all 0.15s;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn:hover { border-color:var(--yellow-dk); background:rgba(245,216,0,0.08); }
+.btn-primary { background:var(--yellow); border-color:var(--yellow-dk); font-weight:500; }
+.btn-primary:hover { background:var(--yellow-dk); color:white; }
+.btn-danger { border-color:#fca5a5; color:var(--red); }
+.btn-danger:hover { background:#fee2e2; border-color:var(--red); }
+
+.btn-row { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+
+/* Status */
+.status {
+  padding:14px 18px; font-size:0.82rem; font-weight:300; letter-spacing:0.08em;
+  border:1px solid; margin-top:16px; display:none; line-height:1.6;
+}
+.status.ok { border-color:#86efac; background:#f0fdf4; color:#166534; }
+.status.err { border-color:#fca5a5; background:#fef2f2; color:#991b1b; }
+.status.info { border-color:#d8d8d8; background:#f8f8f8; color:var(--text-dim); }
+
+/* Preview table */
+.preview { margin-top:20px; display:none; }
+.preview-title { font-weight:300; font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-dimmer); margin-bottom:10px; }
+.preview-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:6px; max-height:300px; overflow-y:auto; }
+.preview-chip { padding:8px 12px; background:white; border:1px solid var(--border); font-family:'Noto Sans TC',sans-serif; font-size:0.78rem; font-weight:300; }
+.preview-chip b { display:block; font-weight:500; font-size:0.68rem; color:var(--text-dimmer); letter-spacing:0.08em; margin-bottom:2px; }
+
+/* Current data info */
+.data-info { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+.data-stat { padding:12px 18px; background:var(--surface); border:1px solid var(--border); text-align:center; flex:1; min-width:120px; }
+.data-stat-num { font-family:'DM Sans',sans-serif; font-weight:300; font-size:1.6rem; color:var(--yellow-dk); letter-spacing:-0.02em; }
+.data-stat-label { font-size:0.65rem; font-weight:200; letter-spacing:0.15em; text-transform:uppercase; color:var(--text-dimmer); margin-top:2px; }
+
+hr { border:none; border-top:1px solid var(--border); margin:32px 0; }
+
+.back-link { display:inline-flex; align-items:center; gap:6px; font-size:0.75rem; font-weight:200; letter-spacing:0.15em; color:var(--text-dimmer); text-decoration:none; margin-bottom:32px; }
+.back-link:hover { color:var(--text); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <a href="index.html" class="back-link">← 回到家族樹網站</a>
+
+  <div class="page-title">資料更新後台</div>
+  <div class="page-sub">Family Tree · Admin Panel</div>
+
+  <!-- Current status -->
+  <div class="step">
+    <div class="step-num">目前狀態 · Current Status</div>
+    <div class="step-title">現有資料</div>
+    <div class="data-info" id="dataInfo">
+      <div class="data-stat"><div class="data-stat-num" id="statFamilies">—</div><div class="data-stat-label">個家族</div></div>
+      <div class="data-stat"><div class="data-stat-num" id="statPeople">—</div><div class="data-stat-label">位同學</div></div>
+      <div class="data-stat"><div class="data-stat-num" id="statGens">—</div><div class="data-stat-label">個屆數</div></div>
+      <div class="data-stat"><div class="data-stat-num" id="statUpdated">—</div><div class="data-stat-label">最後更新</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-danger" onclick="resetToDefault()">⟳ 還原成原始資料</button>
+    </div>
+    <div class="status" id="resetStatus"></div>
+  </div>
+
+  <hr>
+
+  <!-- Step 1 -->
+  <div class="step">
+    <div class="step-num">Step 01</div>
+    <div class="step-title">從 Google Sheet 複製資料</div>
+    <div class="step-desc">
+      開啟你的 Google Sheet 家族樹表格，<b>全選所有內容</b>（<code>Ctrl+A</code> 或 <code>Cmd+A</code>），然後複製（<code>Ctrl+C</code> 或 <code>Cmd+C</code>）。<br><br>
+      複製後直接貼到下方的文字框。
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step">
+    <div class="step-num">Step 02</div>
+    <div class="step-title">貼上並更新</div>
+    <div class="step-desc">將複製的內容貼到下方，再按「解析並更新」。</div>
+    <textarea id="csvInput" placeholder="在這裡貼上從 Google Sheet 複製的內容…"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="parseAndUpdate()">✓ 解析並更新</button>
+      <button class="btn" onclick="document.getElementById('csvInput').value=''">清除</button>
+    </div>
+    <div class="status" id="parseStatus"></div>
+    <div class="preview" id="preview">
+      <div class="preview-title">預覽 — 第29屆同學名單</div>
+      <div class="preview-grid" id="previewGrid"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Parse pasted spreadsheet content ──
+// When copied from Google Sheet, cells are tab-separated, rows are newline-separated
+function parsePasted(text) {
+  const rows = text.split(/\r?\n/).map(r => r.split('\t'));
+
+  // Find generation row (row with numeric values like 32, 31, 30...)
+  let genRowIdx = -1;
+  for (let i = 0; i < Math.min(rows.length, 6); i++) {
+    const nums = rows[i].filter(c => c.trim() && !isNaN(parseInt(c.trim())));
+    if (nums.length >= 5) { genRowIdx = i; break; }
+  }
+  if (genRowIdx === -1) throw new Error('找不到屆數列，請確認是否有複製到第3行（屆數那行）');
+
+  const genRow = rows[genRowIdx];
+  const colToGen = {};
+  for (let c = 1; c < genRow.length; c++) {
+    const v = genRow[c].trim();
+    if (v && !isNaN(parseInt(v))) colToGen[c] = parseInt(v);
+  }
+  if (Object.keys(colToGen).length === 0) throw new Error('無法解析屆數欄位');
+
+  const families = [];
+  for (let ri = genRowIdx + 1; ri < rows.length; ri++) {
+    const row = rows[ri];
+    if (!row[0] || !row[0].trim()) continue;
+    const famId = parseInt(row[0].trim());
+    if (isNaN(famId)) continue;
+
+    const fam = { family_id: famId, members: {} };
+    for (const [col, gen] of Object.entries(colToGen)) {
+      const cell = row[col];
+      if (!cell || !cell.trim()) continue;
+      const raw = cell.trim();
+      let names;
+      if (raw.includes('、')) {
+        names = raw.split('、').map(n => n.trim()).filter(Boolean);
+      } else {
+        const tokens = raw.replace(/,/g, ' ').split(/\s+/).map(t => t.trim()).filter(Boolean);
+        names = (tokens.length > 1 && tokens.every(t => t.length >= 2 && t.length <= 5)) ? tokens : [raw];
+      }
+      names = names.filter(n => n && n !== '無（退學）');
+      if (names.length) fam.members[String(gen)] = names;
+    }
+    if (Object.keys(fam.members).length > 0) families.push(fam);
+  }
+  if (families.length === 0) throw new Error('解析後沒有找到任何家族資料，請重新複製');
+  return families;
+}
+
+function parseAndUpdate() {
+  const text = document.getElementById('csvInput').value.trim();
+  const status = document.getElementById('parseStatus');
+  const preview = document.getElementById('preview');
+
+  if (!text) {
+    showStatus(status, 'err', '請先貼上從 Google Sheet 複製的內容');
+    return;
+  }
+
+  try {
+    const families = parsePasted(text);
+
+    // Count stats
+    let totalPeople = 0;
+    const gens = new Set();
+    families.forEach(f => {
+      Object.entries(f.members).forEach(([g, names]) => {
+        totalPeople += names.length;
+        gens.add(g);
+      });
+    });
+
+    // Save to localStorage
+    localStorage.setItem('familyTreeData', JSON.stringify(families));
+    localStorage.setItem('familyTreeUpdated', new Date().toLocaleString('zh-TW'));
+
+    showStatus(status, 'ok',
+      `✓ 成功更新！共 ${families.length} 個家族、${totalPeople} 位同學、${gens.size} 個屆數。<br>` +
+      `重新開啟家族樹網站後即可看到最新資料。`
+    );
+
+    // Show preview of gen 29
+    const gen29 = families.flatMap(f => f.members['29'] || []);
+    if (gen29.length > 0) {
+      document.getElementById('previewGrid').innerHTML = gen29.map(n =>
+        `<div class="preview-chip"><b>第29屆</b>${n}</div>`
+      ).join('');
+      preview.style.display = 'block';
+    }
+
+    updateStats();
+
+  } catch(e) {
+    showStatus(status, 'err', '解析失敗：' + e.message);
+    preview.style.display = 'none';
+  }
+}
+
+function resetToDefault() {
+  if (!confirm('確定要還原成原始資料嗎？所有手動更新的資料將會清除。')) return;
+  localStorage.removeItem('familyTreeData');
+  localStorage.removeItem('familyTreeUpdated');
+  const status = document.getElementById('resetStatus');
+  showStatus(status, 'ok', '✓ 已還原為原始資料，重新整理家族樹網站後生效。');
+  updateStats();
+}
+
+function showStatus(el, type, msg) {
+  el.className = 'status ' + type;
+  el.innerHTML = msg;
+  el.style.display = 'block';
+}
+
+function updateStats() {
+  const saved = localStorage.getItem('familyTreeData');
+  const updated = localStorage.getItem('familyTreeUpdated');
+
+  if (saved) {
+    try {
+      const families = JSON.parse(saved);
+      let totalPeople = 0;
+      const gens = new Set();
+      families.forEach(f => {
+        Object.entries(f.members).forEach(([g, names]) => {
+          totalPeople += names.length;
+          gens.add(g);
+        });
+      });
+      document.getElementById('statFamilies').textContent = families.length;
+      document.getElementById('statPeople').textContent = totalPeople;
+      document.getElementById('statGens').textContent = gens.size;
+      document.getElementById('statUpdated').textContent = updated || '—';
+    } catch(e) {}
+  } else {
+    // Default data stats
+    document.getElementById('statFamilies').textContent = '69';
+    document.getElementById('statPeople').textContent = '—';
+    document.getElementById('statGens').textContent = '32';
+    document.getElementById('statUpdated').textContent = '原始資料';
+  }
+}
+
+updateStats();
+</script>
+</body>
+</html>
